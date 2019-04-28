@@ -10,15 +10,15 @@ from dataloaders import custom_transforms as tr
 class KittiesSegmentation(data.Dataset):
     NUM_CLASSES = 19
 
-    def __init__(self, args, root=Path.db_root_dir('kitties'), split="train"):
+    def __init__(self, args, root=Path.db_root_dir('kitti'), split="train"):
 
         self.root = root
         self.split = split
         self.args = args
         self.files = {}
 
-        self.images_base = os.path.join(self.root, 'image_2', self.split)
-        self.annotations_base = os.path.join(self.root, 'semantic_rgb', self.split)
+        self.images_base = os.path.join(self.root, 'image_2')
+        self.annotations_base = os.path.join(self.root, 'semantic_rgb')
 
         self.files[split] = self.recursive_glob(rootdir=self.images_base, suffix='.png')
 
@@ -42,11 +42,12 @@ class KittiesSegmentation(data.Dataset):
     def __getitem__(self, index):
 
         img_path = self.files[self.split][index].rstrip()
+        print(img_path.split(os.sep)[-1])
         lbl_path = os.path.join(self.annotations_base,
-                                img_path.split(os.sep)[-2:])
+                                img_path.split(os.sep)[-1])
 
         _img = Image.open(img_path).convert('RGB')
-        _tmp = np.array(Image.open(lbl_path), dtype=np.int32)
+        _tmp = np.array(Image.open(lbl_path), dtype=np.uint8)
         _tmp = self.encode_segmap(_tmp)
         _target = Image.fromarray(_tmp)
 
@@ -105,14 +106,14 @@ if __name__ == '__main__':
 
     kitties_train = KittiesSegmentation(args, split='train')
 
-    dataloader = DataLoader(kitties_train, batch_size=2, shuffle=True, num_workers=2)
+    dataloader = DataLoader(kitties_train, batch_size=2, shuffle=True, num_workers=2, drop_last = True)
 
     for ii, sample in enumerate(dataloader):
         for jj in range(sample["image"].size()[0]):
             img = sample['image'].numpy()
             gt = sample['label'].numpy()
             tmp = np.array(gt[jj]).astype(np.uint8)
-            segmap = decode_segmap(tmp, dataset='kitties')
+            # segmap = decode_segmap(tmp, dataset='kitti')
             img_tmp = np.transpose(img[jj], axes=[1, 2, 0])
             img_tmp *= (0.229, 0.224, 0.225)
             img_tmp += (0.485, 0.456, 0.406)
@@ -123,7 +124,7 @@ if __name__ == '__main__':
             plt.subplot(211)
             plt.imshow(img_tmp)
             plt.subplot(212)
-            plt.imshow(segmap)
+            plt.imshow(tmp)
 
         if ii == 1:
             break
