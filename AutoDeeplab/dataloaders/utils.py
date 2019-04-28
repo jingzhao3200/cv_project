@@ -64,6 +64,23 @@ def encode_segmap(mask):
     label_mask = label_mask.astype(int)
     return label_mask
 
+def get_kitti_labels():
+    return np.array([
+        [128, 128, 128],    # Sky
+        [128, 0, 0],        # Building
+        [128, 64, 128],     # Road
+        [0, 0, 192],        # Sidewalk
+        [64, 64, 128],      # Fence
+        [128, 128, 0],      # Vegetation
+        [192, 192, 128],    # Pole
+        [64, 0, 128],       # Car
+        [192, 128, 128],    # Sign
+        [64, 64, 0],        # Pedestrian
+        [0, 128, 192],     # Cyclist
+        [0, 0, 0]          # Void
+        ])
+
+
 
 def get_cityscapes_labels():
     return np.array([
