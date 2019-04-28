@@ -10,7 +10,7 @@ class Path(object):
         elif dataset == 'coco':
             return '/path/to/datasets/coco/'
         elif dataset == 'kitti':
-            return '/Users/jingzhao/16720/cv_project/kitti/data_semantics/training'
+            return '../kitti/data_semantics/training'
         else:
             print('Dataset {} not available.'.format(dataset))
             raise NotImplementedError
