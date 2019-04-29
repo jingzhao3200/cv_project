@@ -9,7 +9,7 @@ from dataloaders import custom_transforms as tr
 from dataloaders import utils
 
 class KittiesSegmentation(data.Dataset):
-    NUM_CLASSES = 19
+    NUM_CLASSES = 12
 
     def __init__(self, args, root=Path.db_root_dir('kitti'), split="train"):
 
@@ -25,12 +25,27 @@ class KittiesSegmentation(data.Dataset):
 
         self.void_classes = [11]
         self.valid_classes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        self.class_names = ['void', 'Sky', 'Building', 'Road', 'Sidewalk', \
+        self.class_names = ['Sky', 'Building', 'Road', 'Sidewalk', \
                     'Fence', 'Vegetation', 'Pole', 'Car', \
-                    'Sign', 'Pedestrian', 'Cyclist']
+                    'Sign', 'Pedestrian', 'Cyclist', 'void']
 
         self.ignore_index = 255
         self.class_map = dict(zip(self.valid_classes, range(self.NUM_CLASSES)))
+
+        self.mapping = {
+            torch.tensor([128, 128, 128], dtype=torch.uint8):0,
+            torch.tensor([128, 0, 0], dtype=torch.uint8):1,
+            torch.tensor([128, 64, 128], dtype=torch.uint8):2,
+            torch.tensor([0, 0, 192], dtype=torch.uint8):3,
+            torch.tensor([64, 64, 128], dtype=torch.uint8):4,
+            torch.tensor([128, 128, 0], dtype=torch.uint8):5,
+            torch.tensor([192, 192, 128], dtype=torch.uint8):6,
+            torch.tensor([64, 0, 128], dtype=torch.uint8):7,
+            torch.tensor([192, 128, 128], dtype=torch.uint8):8,
+            torch.tensor([64, 64, 0], dtype=torch.uint8):9,
+            torch.tensor([0, 128, 192], dtype=torch.uint8):10,
+            torch.tensor([0, 0, 0], dtype=torch.uint8):11
+            }
 
         if not self.files[split]:
             raise Exception("No files for split=[%s] found in %s" % (split, self.images_base))
@@ -40,6 +55,13 @@ class KittiesSegmentation(data.Dataset):
     def __len__(self):
         return len(self.files[self.split])
 
+    def mask_to_class(self, mask):
+        for k in self.mapping:
+#             print(k.dtype)
+#             print(mask.dtype)
+            mask[mask==k] = self.mapping[k]
+        return mask
+
     def __getitem__(self, index):
 
         img_path = self.files[self.split][index].rstrip()
@@ -48,9 +70,12 @@ class KittiesSegmentation(data.Dataset):
                                 img_path.split(os.sep)[-1])
 
         _img = Image.open(img_path).convert('RGB')
-        _tmp = np.array(Image.open(lbl_path), dtype=np.uint8)
-        _tmp = self.encode_segmap(_tmp)
-        _target = Image.fromarray(_tmp)
+        mask_arr = np.array(Image.open(lbl_path), dtype=np.uint8)
+        mask_tensor = torch.from_numpy(mask_arr)
+        mask_tensor = mask_tensor.permute(2,0,1)
+        mask_tensor = mask_tensor.view(mask_tensor.size(0), -1).permute(1,0)
+        mask_tensor = self.encode_segmap(mask_tensor)
+        _target = Image.fromarray(mask_tensor)
 
         sample = {'image': _img, 'label': _target}
 
@@ -61,10 +86,11 @@ class KittiesSegmentation(data.Dataset):
 
     def encode_segmap(self, mask):
         # Put all void classes to zero
-        labels = utils.get_kitti_labels()
-        mask[mask == labels[-1]] = self.ignore_index
-        for i, _validc in enumerate(labels[:-1]):
-            mask[mask == _validc] = self.class_map[i]
+        results = np.zeros(mask.shape[:-1])
+        for _voidc in self.void_classes:
+            results[mask == _voidc] = self.ignore_index
+        for _validc in self.valid_classes:
+            mask[mask == _validc] = self.class_map[_validc]
         return mask
 
     def recursive_glob(self, rootdir='.', suffix=''):
