@@ -138,26 +138,7 @@ class AlignedXception(nn.Module):
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
         self.block9  = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block10 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
-                             BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block11 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
-                             BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block12 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
-                             BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block13 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
-                             BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block14 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
-                             BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block15 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
-                             BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block16 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
-                             BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block17 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
-                             BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block18 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
-                             BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block19 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
-                             BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
+    
 
         # Exit flow
         self.block20 = Block(728, 1024, reps=2, stride=1, dilation=exit_block_dilations[0],
@@ -176,8 +157,8 @@ class AlignedXception(nn.Module):
         self._init_weight()
 
         # Load pretrained model
-        if pretrained:
-            self._load_pretrained_model()
+        # if pretrained:
+        #     self._load_pretrained_model()
 
     def forward(self, x):
         # Entry flow
@@ -203,16 +184,6 @@ class AlignedXception(nn.Module):
         x = self.block7(x)
         x = self.block8(x)
         x = self.block9(x)
-        x = self.block10(x)
-        x = self.block11(x)
-        x = self.block12(x)
-        x = self.block13(x)
-        x = self.block14(x)
-        x = self.block15(x)
-        x = self.block16(x)
-        x = self.block17(x)
-        x = self.block18(x)
-        x = self.block19(x)
 
         # Exit flow
         x = self.block20(x)
@@ -244,38 +215,38 @@ class AlignedXception(nn.Module):
                 m.bias.data.zero_()
 
 
-    def _load_pretrained_model(self):
-        pretrain_dict = model_zoo.load_url('http://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth')
-        model_dict = {}
-        state_dict = self.state_dict()
+    # def _load_pretrained_model(self):
+    #     pretrain_dict = model_zoo.load_url('http://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth')
+    #     model_dict = {}
+    #     state_dict = self.state_dict()
 
-        for k, v in pretrain_dict.items():
-            if k in model_dict:
-                if 'pointwise' in k:
-                    v = v.unsqueeze(-1).unsqueeze(-1)
-                if k.startswith('block11'):
-                    model_dict[k] = v
-                    model_dict[k.replace('block11', 'block12')] = v
-                    model_dict[k.replace('block11', 'block13')] = v
-                    model_dict[k.replace('block11', 'block14')] = v
-                    model_dict[k.replace('block11', 'block15')] = v
-                    model_dict[k.replace('block11', 'block16')] = v
-                    model_dict[k.replace('block11', 'block17')] = v
-                    model_dict[k.replace('block11', 'block18')] = v
-                    model_dict[k.replace('block11', 'block19')] = v
-                elif k.startswith('block12'):
-                    model_dict[k.replace('block12', 'block20')] = v
-                elif k.startswith('bn3'):
-                    model_dict[k] = v
-                    model_dict[k.replace('bn3', 'bn4')] = v
-                elif k.startswith('conv4'):
-                    model_dict[k.replace('conv4', 'conv5')] = v
-                elif k.startswith('bn4'):
-                    model_dict[k.replace('bn4', 'bn5')] = v
-                else:
-                    model_dict[k] = v
-        state_dict.update(model_dict)
-        self.load_state_dict(state_dict)
+    #     for k, v in pretrain_dict.items():
+    #         if k in model_dict:
+    #             if 'pointwise' in k:
+    #                 v = v.unsqueeze(-1).unsqueeze(-1)
+    #             if k.startswith('block11'):
+    #                 model_dict[k] = v
+    #                 model_dict[k.replace('block11', 'block12')] = v
+    #                 model_dict[k.replace('block11', 'block13')] = v
+    #                 model_dict[k.replace('block11', 'block14')] = v
+    #                 model_dict[k.replace('block11', 'block15')] = v
+    #                 model_dict[k.replace('block11', 'block16')] = v
+    #                 model_dict[k.replace('block11', 'block17')] = v
+    #                 model_dict[k.replace('block11', 'block18')] = v
+    #                 model_dict[k.replace('block11', 'block19')] = v
+    #             elif k.startswith('block12'):
+    #                 model_dict[k.replace('block12', 'block20')] = v
+    #             elif k.startswith('bn3'):
+    #                 model_dict[k] = v
+    #                 model_dict[k.replace('bn3', 'bn4')] = v
+    #             elif k.startswith('conv4'):
+    #                 model_dict[k.replace('conv4', 'conv5')] = v
+    #             elif k.startswith('bn4'):
+    #                 model_dict[k.replace('bn4', 'bn5')] = v
+    #             else:
+    #                 model_dict[k] = v
+    #     state_dict.update(model_dict)
+    #     self.load_state_dict(state_dict)
 
 
 
