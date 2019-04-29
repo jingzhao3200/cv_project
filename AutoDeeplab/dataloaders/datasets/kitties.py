@@ -63,8 +63,8 @@ class KittiesSegmentation(data.Dataset):
         # Put all void classes to zero
         labels = utils.get_kitti_labels()
         mask[mask == labels[-1]] = self.ignore_index
-        for _validc in labels[:-1]:
-            mask[mask == _validc] = self.class_map[_validc]
+        for i, _validc in enumerate(labels[:-1]):
+            mask[mask == _validc] = self.class_map[i]
         return mask
 
     def recursive_glob(self, rootdir='.', suffix=''):
