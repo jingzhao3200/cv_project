@@ -6,6 +6,7 @@ from torch.utils import data
 from mypath import Path
 from torchvision import transforms
 from dataloaders import custom_transforms as tr
+from dataloaders import utils
 
 class KittiesSegmentation(data.Dataset):
     NUM_CLASSES = 19
@@ -60,9 +61,9 @@ class KittiesSegmentation(data.Dataset):
 
     def encode_segmap(self, mask):
         # Put all void classes to zero
-        for _voidc in self.void_classes:
-            mask[mask == _voidc] = self.ignore_index
-        for _validc in self.valid_classes:
+        labels = utils.get_kitti_labels()
+        mask[mask == labels[-1]] = self.ignore_index
+        for _validc in labels[:-1]:
             mask[mask == _validc] = self.class_map[_validc]
         return mask
 
